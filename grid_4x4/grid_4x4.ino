@@ -11,30 +11,22 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
-// called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-// you can also call it with a different address you want
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
 int pwm_pot_pin = A0;
 
 //update these based on wiring
-int thread_map =[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+int thread_map[16] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 
 void setup() {
   Serial.begin(9600);
   Serial.println("16 channel PWM test!");
 
-  // if you want to really speed stuff up, you can go into 'fast 400khz I2C' mode
-  // some i2c devices dont like this so much so if you're sharing the bus, watch
-  // out for this!
   pinMode(pwm_pot_pin, INPUT);
 
   pwm.begin();
   pwm.setPWMFreq(1600);  // This is the maximum PWM frequency
-    
-  // save I2C bitrate
   uint8_t twbrbackup = TWBR;
   // must be changed after calling Wire.begin() (inside pwm.begin())
   TWBR = 12; // upgrade to 400KHz!
