@@ -1,19 +1,11 @@
 /*************************************************** 
-  This is an example for our Adafruit 16-channel PWM & Servo driver
-  PWM test - this will drive 16 PWMs in a 'wave'
-
-  Pick one up today in the adafruit shop!
-  ------> http://www.adafruit.com/products/815
-
-  These displays use I2C to communicate, 2 pins are required to  
-  interface. For Arduino UNOs, thats SCL -> Analog 5, SDA -> Analog 4
-
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
-  BSD license, all text above must be included in any redistribution
+  4x4 weave control
+  a pot controls "on" level for all 16 squares
+  thread_map stores a list of pwm controller pin mappings for the square as read left to right and down the rows. i.e.
+    thread_map[0] represents the top left square
+    thread_map[4] represents the first square in the second row
+    thread_map[15] represents the bottom right thread
+  code cycles through each square, turning one on at a time at a rate that will allow for color change but not a power overload
  ****************************************************/
 
 #include <Wire.h>
@@ -25,6 +17,10 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
 int pwm_pot_pin = A0;
+
+//update these based on wiring
+int thread_map =[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
 
 void setup() {
   Serial.begin(9600);
@@ -47,8 +43,16 @@ void setup() {
 
 void loop() {
   
+  //the pot pin val sets the level for "on" on all 16 inputs
   int pwm_pot_val = analogRead(pwm_pot_pin);
   int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
-  Serial.println(pwm_val);
-  pwm.setPin(0, pwm_val, false);
+  
+  for(int i = 0; i < 16; i++){
+    for(int j = 0; j < 16; j++){
+      if(j == i) pwm.setPin(thread_map[j], pwm_val, false);
+      else pwm.setPin(thread_map[j], 0, false);
+    }
+  }
+  
+  delay(100); //we may not need this but might as well give it a little time to digest. 
 }
