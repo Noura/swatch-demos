@@ -51,4 +51,6 @@ void loop() {
   int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
   Serial.println(pwm_val);
   pwm.setPin(0, pwm_val, false);
+  pwm.setPin(6, pwm_val, false);
+ pwm.setPin(10, pwm_val, false);
 }

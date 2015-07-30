@@ -6,6 +6,7 @@
     thread_map[4] represents the first square in the second row
     thread_map[15] represents the bottom right thread
   code cycles through each square, turning one on at a time at a rate that will allow for color change but not a power overload
+  //as of 7/29 - each grid cell activated at about 410
  ****************************************************/
 
 #include <Wire.h>
@@ -44,7 +45,8 @@ void loop() {
       if(j == i) pwm.setPin(thread_map[j], pwm_val, false);
       else pwm.setPin(thread_map[j], 0, false);
     }
+    Serial.println(i);
+   delay(4000); //we may not need this but might as well give it a little time to digest. 
   }
   
-  delay(100); //we may not need this but might as well give it a little time to digest. 
 }

@@ -21,7 +21,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 int pwm_pot_pin = A0;
 
 //update these based on wiring
-int thread_map[10] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+int thread_map[10] ={0, 3, 8, 5, 1, 2, 6, 9, 4, 7};
 int active_map[10] = {0,0,0,0,0,0,0,0,0,0};
 
 int bluetoothTx = 3;  // TX-O pin of bluetooth mate, Arduino D2
@@ -29,12 +29,16 @@ int bluetoothRx = 4;  // RX-I pin of bluetooth mate, Arduino D3
 char rx_buf[BUFFER_SIZE] = {0};
 int rx_len = 0;
 
+int active_id = 0;
+int cycles = 0;
+int interval = 1;
+
 SoftwareSerial bluetooth(bluetoothTx, bluetoothRx);
 
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("16 channel PWM test!");
+  Serial.println("bluetooth test!");
   
   bluetooth.begin(115200);  // The Bluetooth Mate defaults to 115200bps
   bluetooth.print("$$$");  // Enter command mode
@@ -65,17 +69,32 @@ void loop() {
   int pwm_pot_val = analogRead(pwm_pot_pin);
   int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
   
-  //cycle through all values
-  for(int i = 0; i < 9; i++){
-    //turn only 1 on at a time, and only if it's active.
-    for(int j = 0; j < 9; j++){
-      if(j == i && active_map[j]== 1) pwm.setPin(thread_map[j], pwm_val, false);
-      else pwm.setPin(thread_map[j], 0, false);
-    }
-  }
   
-  delay(100); //we may not need this but might as well give it a little time to digest. 
+  cycleThroughActive(pwm_val);
+
+
 }
+
+void cycleThroughActive(int pwm_val){
+
+ if(active_map[active_id] == 1){
+    pwm.setPin(thread_map[active_id], pwm_val, false);
+    Serial.println(active_id+1);
+    if(cycles % interval == 0){
+      pwm.setPin(thread_map[active_id], 0, false); //turn this thread off
+      active_id = (active_id +1) % 10;
+      cycles = 1;
+    }else{
+      cycles++;
+    }
+  }else{
+    //make sure the thread is off and advance past this index since it's zero
+    pwm.setPin(thread_map[active_id], 0, false); //turn this thread off
+    active_id = (active_id +1) % 10;
+  }
+
+}
+
 
 void bufferData(char c) {
   if (rx_len < BUFFER_SIZE) {
@@ -87,8 +106,10 @@ void bufferData(char c) {
 void checkBluetooth(){
   //receive incoming data
   if (bluetooth.available()) {
+    Serial.println("has values");
     while (bluetooth.available()) {
       char c = bluetooth.read();
+      Serial.println(c);
       if (c == 0xA || c == 0xD) { // \n or \r
         //add the NULL character as EOF
         bufferData(NULL);
@@ -102,7 +123,7 @@ void checkBluetooth(){
 }
 
 void digestData(){
-   
+  Serial.println("digesting");
   Serial.write("<- ");
   Serial.write(rx_buf[0]);
   int value = atoi(rx_buf+1);

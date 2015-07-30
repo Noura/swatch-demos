@@ -13,8 +13,10 @@ int weft_pot_val[3] = {0, 0, 0};
 
 //pwm pins are 3, 5, 6, 9, 10, and 11
                       //blue,red, yellow
-int warp_thread[3] = {3, 5, 6};
-int weft_thread[3] = {9, 10, 11};
+int warp_thread[3] = {11, 9, 6};
+                      //11 ,9, 6 
+int weft_thread[3] = {3, 5, 10};
+                      //3, 5, 10
 
 
 void setup() {
