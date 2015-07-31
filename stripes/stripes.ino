@@ -81,6 +81,6 @@ void cycleInOrder(int pwm_val){
         else pwm.setPin(thread_map[j], 0, false);
       }
       Serial.println(i);
-     delay(14000); //we may not need this but might as well give it a little time to digest. 
+     delay(18000); //we may not need this but might as well give it a little time to digest. 
    }
 }

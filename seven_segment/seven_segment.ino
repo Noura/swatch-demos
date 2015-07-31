@@ -41,7 +41,7 @@ int SIX[7] ={1, 1, 0, 1, 1, 1, 1};
 int SEVEN[7] ={1, 0, 1, 0, 0, 1, 0};
 int EIGHT[7] ={1, 1, 1, 1, 1, 1, 1};
 int NINE[7] ={1, 1, 1, 1, 0, 1, 0};
-
+int active[14] = {1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
 
 int pwm_pot_pin = A0;
 
@@ -54,8 +54,12 @@ int d2[7] = {
   10, 8, 9, 5, 6, 13, 4};
   
 int counter = 0;
-int frame_counter = 0;
-int counter_interval = 600;
+int frame_counter = 1;
+int counter_interval = 100000;
+
+int active_id = 0;
+int cycles = 0;
+int interval = 1;
 
 void setup() {
   Serial.begin(9600);
@@ -69,7 +73,6 @@ void setup() {
   TWBR = 12; // upgrade to 400KHz!
 
 
-
 }
 
 void loop() {
@@ -80,15 +83,20 @@ void loop() {
   
   //cycleThroughPins(pwm_val);
 
-
-  if(frame_counter++ % counter_interval == 0) counter++;
+  if(frame_counter++ % counter_interval == 0){
+    frame_counter = 1;
+    counter++;
+    Serial.println(counter);
+  }
   if(counter > 99) counter = 0;
 
-  int tens = counter / 10;
-  int ones = counter % 10;
+  int tens = counter % 10;
+  //int ones = counter % 10;
 
-    writeToDigit(d1, tens, pwm_val);
-    writeToDigit(d2, ones, pwm_val);  
+    writeToTens(tens, pwm_val);
+//    writeToOnes(1, pwm_val); 
+ 
+   cycleThroughActive(pwm_val); 
 }
 
 void cycleThroughPins(int pwm_val){
@@ -97,13 +105,12 @@ void cycleThroughPins(int pwm_val){
              if(j == i) pwm.setPin(j, pwm_val, false);
               else pwm.setPin(j, 0, false);
       }
-      Serial.println(i);
      delay(14000); //we may not need this but might as well give it a little time to digest. 
    }
 }
 
-void writeToDigit(int* d, int val, int pwm_val){
-  Serial.println(val);
+void writeToOnes(int val, int pwm_val){
+  int *d;
   if(val == 0) d = ZERO;
   else if(val == 1) d = ONE;
   else if(val == 2) d = TWO;
@@ -115,8 +122,48 @@ void writeToDigit(int* d, int val, int pwm_val){
   else if(val == 8) d = EIGHT;
   else  d = NINE;
   
-  for(int i = 0; i < 14; i++){
-    pwm.setPin(i, d[i]*pwm_val, false);
+  for(int i = 0; i < 7; i++){
+    active[i+7] = d[i];
+  }
+  
+}
+
+void writeToTens(int val, int pwm_val){
+  int* d;
+  if(val == 0) d = ZERO;
+  else if(val == 1) d = ONE;
+  else if(val == 2) d = TWO;
+  else if(val == 3) d = THREE;
+  else if(val == 4) d = FOUR;
+  else if(val == 5) d = FIVE;
+  else if(val == 6) d = SIX; 
+  else if(val == 7) d = SEVEN;
+  else if(val == 8) d = EIGHT;
+  else  d = NINE;
+  
+  for(int i = 0; i < 7; i++){
+    active[i] = d[i];
+  }
+  
+}
+
+void cycleThroughActive(int pwm_val){
+  if(active[active_id] == 1){
+      if(active_id < 7) pwm.setPin(d1[active_id], pwm_val, false);
+      else pwm.setPin(d2[active_id-7], pwm_val, false);
+    if(cycles % interval == 0){
+       if(active_id < 7) pwm.setPin(d1[active_id], 0, false);
+       else pwm.setPin(d2[active_id-7], 0, false);
+      active_id = (active_id +1) % 14;
+      cycles = 1;
+    }else{
+      cycles++;
+    }
+  }else{
+    //make sure the thread is off and advance past this index since it's zero
+    if(active_id < 7) pwm.setPin(d1[active_id], 0, false);
+    else pwm.setPin(d2[active_id-7], 0, false);
+    active_id = (active_id +1) % 14;
   }
 }
 
