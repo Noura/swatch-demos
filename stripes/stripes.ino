@@ -49,8 +49,9 @@ void loop() {
   int pwm_pot_val = analogRead(pwm_pot_pin);
   int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
   //Serial.println(pwm_val);
+  //pwm.setPin(15, pwm_val, false);
   
-  cycleThroughActive(pwm_val);
+ cycleInOrder(pwm_val);
 
 }
 
@@ -76,7 +77,7 @@ void cycleThroughActive(int pwm_val){
 void cycleInOrder(int pwm_val){
   for(int i = 0; i < 10; i++){
       for(int j = 0; j < 10; j++){
-        if(j == i && active[j] == 1) pwm.setPin(thread_map[j], pwm_val, false);
+        if(j == i) pwm.setPin(thread_map[j], pwm_val, false);
         else pwm.setPin(thread_map[j], 0, false);
       }
       Serial.println(i);

@@ -47,11 +47,15 @@ int pwm_pot_pin = A0;
 
 //update these based on wiring
 int d1[7] ={
-  0, 1, 2, 3, 4, 5, 6};
+  7, 0, 11, 3, 12, 1, 2};
+
+  
 int d2[7] = {
-  7, 8, 9, 10, 11, 12, 13};
+  10, 8, 9, 5, 6, 13, 4};
+  
 int counter = 0;
 int frame_counter = 0;
+int counter_interval = 600;
 
 void setup() {
   Serial.begin(9600);
@@ -64,6 +68,8 @@ void setup() {
   // must be changed after calling Wire.begin() (inside pwm.begin())
   TWBR = 12; // upgrade to 400KHz!
 
+
+
 }
 
 void loop() {
@@ -71,18 +77,33 @@ void loop() {
   //the pot pin val sets the level for "on" on all 16 inputs
   int pwm_pot_val = analogRead(pwm_pot_pin);
   int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
+  
+  //cycleThroughPins(pwm_val);
 
-  if(frame_counter++ % 60 == 0) counter++;
+
+  if(frame_counter++ % counter_interval == 0) counter++;
   if(counter > 99) counter = 0;
 
   int tens = counter / 10;
   int ones = counter % 10;
 
-    writeToDigit(d1, tens);
-    writeToDigit(d2, ones);  
+    writeToDigit(d1, tens, pwm_val);
+    writeToDigit(d2, ones, pwm_val);  
 }
 
-void writeToDigit(int* d, int val){
+void cycleThroughPins(int pwm_val){
+  for(int i = 0; i < 14; i++){
+      for(int j = 0; j < 14; j++){
+             if(j == i) pwm.setPin(j, pwm_val, false);
+              else pwm.setPin(j, 0, false);
+      }
+      Serial.println(i);
+     delay(14000); //we may not need this but might as well give it a little time to digest. 
+   }
+}
+
+void writeToDigit(int* d, int val, int pwm_val){
+  Serial.println(val);
   if(val == 0) d = ZERO;
   else if(val == 1) d = ONE;
   else if(val == 2) d = TWO;
@@ -93,7 +114,10 @@ void writeToDigit(int* d, int val){
   else if(val == 7) d = SEVEN;
   else if(val == 8) d = EIGHT;
   else  d = NINE;
-
+  
+  for(int i = 0; i < 14; i++){
+    pwm.setPin(i, d[i]*pwm_val, false);
+  }
 }
 
 
