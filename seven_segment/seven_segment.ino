@@ -8,11 +8,31 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
-
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
+/* the seven segment display
+         _______
+        /   0   \
+    / \ \_______/ / \
+   |   |         |   |
+   |   |         |   |
+   | 1 |         | 2 |
+   |   |         |   |
+   |   | _______ |   |
+    \ / /   3   \ \ /
+    / \ \_______/ / \
+   |   |         |   |
+   |   |         |   |
+   | 4 |         | 5 |
+   |   |         |   |
+   |   | _______ |   |
+    \ / /   6   \ \ /
+        \_______/
+
+*/
+
 int ZERO[7] = {1, 1, 1, 0, 1, 1, 1};
-int ONE[7] = {0, 1, 0, 0, 1, 0, 0};
+int ONE[7] = {0, 1, 0, 0, 1, 0, 0}; // i think 1 should be on the left not the right side of the seven segment
 int TWO[7] = {1, 0, 1, 1, 1, 0, 1};
 int THREE[7] = {1, 0, 1, 1, 0, 1, 1};
 int FOUR[7] = {0, 1, 1, 1, 0, 1, 0};
