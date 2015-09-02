@@ -15,7 +15,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // you can also call it with a different address you want
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
-int pwm_pot_pin = A0;
+int pwm_pot_pin = A6;
 
 //update these based on wiring
 int thread_map[10] ={0, 3, 8, 5, 1, 2, 6, 9, 4, 7};
@@ -45,13 +45,9 @@ void setup() {
 
 void loop() {
   
-  //the pot pin val sets the level for "on" on all 16 inputs
-  int pwm_pot_val = analogRead(pwm_pot_pin);
-  int pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
-  //Serial.println(pwm_val);
   //pwm.setPin(15, pwm_val, false);
   
- cycleInOrder(pwm_val);
+  cycleInOrder();
 
 }
 
@@ -74,13 +70,23 @@ void cycleThroughActive(int pwm_val){
 }
 
 
-void cycleInOrder(int pwm_val){
+void cycleInOrder(){
+  //the pot pin val sets the level for "on" on all 16 inputs
+  int pwm_pot_val;
+  int pwm_val;
+  
   for(int i = 0; i < 10; i++){
+      pwm_pot_val = analogRead(pwm_pot_pin);
+      pwm_val = map(pwm_pot_val, 0, 1023, 0, 4096);
+      
+      Serial.print(pwm_val); Serial.print(" ");
+      
       for(int j = 0; j < 10; j++){
         if(j == i) pwm.setPin(thread_map[j], pwm_val, false);
         else pwm.setPin(thread_map[j], 0, false);
       }
       Serial.println(i);
-     delay(18000); //we may not need this but might as well give it a little time to digest. 
+      
+      delay(18000); //we may not need this but might as well give it a little time to digest.  
    }
 }
